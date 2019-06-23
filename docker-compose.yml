@@ -125,10 +125,11 @@ services:
   traefik:
     image: traefik # The official Traefik docker image
     container_name: traefik
-    command: --api --file --file.directory="/config" --file.watch
+    command: --configFile=/config/traefik.toml
     ports:
       - "80:80"     # The HTTP port
-      - "8888:8080" # The Web UI (enabled by --api)
+      - "8080:8080" # The Web UI (enabled by --api)
+      - "9009:9009"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - traefik-data:/tmp

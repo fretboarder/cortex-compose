@@ -8,8 +8,8 @@ global:
     monitor: codelab
     foo:     bar
 
-#remote_write:
-#- url: http://cortex-lb/api/prom/push
+remote_write:
+- url: http://traefik:9009/api/prom/push
 
 scrape_configs:
 #- job_name: node
@@ -30,7 +30,7 @@ scrape_configs:
 - job_name: traefik
   honor_labels: true
   static_configs:
-  - targets: ['traefik:80']
+  - targets: ['traefik:8080']
 
 #- job_name: cadvisor
 #  honor_labels: true
