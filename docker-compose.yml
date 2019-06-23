@@ -1,0 +1,161 @@
+version: "3.7"
+
+services:
+  consul:
+    image: consul
+    container_name: consul
+    networks: 
+      - cortex
+    ports:
+      - "8500:8500"
+      - "8600:8600"
+    volumes:
+      - consul-data:/consul/data
+    environment:
+    - "CONSUL_BIND_INTERFACE=eth0"
+
+  cortex1:
+    image: quay.io/cortexproject/cortex:master-a7cedef6
+    container_name: cortex1
+    hostname: cortex1
+    ports:
+      - "9001:9009"
+    volumes: 
+      - "${PWD}/config/single-process-config.yaml:/etc/single-process-config.yaml"
+      - "cortex1-data:/var/lib/cortex"
+    command:
+      - "-config.file=/etc/single-process-config.yaml"
+      - "-ring.store=consul"
+      - "-consul.hostname=consul:8500"
+      - "-distributor.replication-factor=3"
+    networks:
+      - cortex
+    depends_on:
+      - consul
+
+  cortex2:
+    image: quay.io/cortexproject/cortex:master-a7cedef6
+    container_name: cortex2
+    hostname: cortex2
+    ports:
+      - "9002:9009"
+    volumes: 
+      - "${PWD}/config/single-process-config.yaml:/etc/single-process-config.yaml"
+      - "cortex2-data:/var/lib/cortex"
+    command:
+      - "-config.file=/etc/single-process-config.yaml"
+      - "-ring.store=consul"
+      - "-consul.hostname=consul:8500"
+      - "-distributor.replication-factor=3"
+    networks:
+      - cortex
+    depends_on:
+      - consul
+
+  cortex3:
+    image: quay.io/cortexproject/cortex:master-a7cedef6
+    container_name: cortex3
+    hostname: cortex3
+    ports:
+      - "9003:9009"
+    volumes: 
+      - "${PWD}/config/single-process-config.yaml:/etc/single-process-config.yaml"
+      - "cortex3-data:/var/lib/cortex"
+    command:
+      - "-config.file=/etc/single-process-config.yaml"
+      - "-ring.store=consul"
+      - "-consul.hostname=consul:8500"
+      - "-distributor.replication-factor=3"
+    networks:
+      - cortex
+    depends_on:
+      - consul
+
+  node-1:
+    image: prom/node-exporter:master
+    container_name: exporter1
+    ports:
+      - "9100:9100"
+    hostname: node-1
+    networks: 
+      - cortex
+
+  node-2:
+    image: prom/node-exporter:master
+    container_name: exporter2
+    ports:
+      - "9101:9100"
+    hostname: node-2
+    networks: 
+      - cortex
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    links:
+      - traefik:cortex-lb
+    ports:
+      - "9090:9090"
+    volumes:
+      - prom-data:/prometheus
+      - ${PWD}/config:/config
+    command:
+      - "--config.file"
+      - "/config/prometheus.yml"
+      - "--storage.tsdb.retention.time=0s"
+    networks: 
+      - cortex
+    depends_on:
+      - cortex1
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    links:
+      - traefik:cortex-lb
+    ports:
+      - "3000:3000"
+    volumes:
+      - graf-data:/var/lib/grafana
+    environment:
+      - "GF_SECURITY_ADMIN_PASSWORD=admin"
+    networks: 
+      - cortex
+
+  traefik:
+    image: traefik # The official Traefik docker image
+    container_name: traefik
+    command: --api --file --file.directory="/config" --file.watch
+    ports:
+      - "80:80"     # The HTTP port
+      - "8888:8080" # The Web UI (enabled by --api)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - traefik-data:/tmp
+      - ${PWD}/config:/config
+    networks: 
+      - cortex
+
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: cadvisor
+    ports:
+    - 8880:8080
+    volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    networks: 
+    - cortex
+networks:
+  cortex:
+
+volumes:
+  prom-data:
+  graf-data:
+  cortex1-data:
+  cortex2-data:
+  cortex3-data:
+  consul-data:
+  traefik-data:
