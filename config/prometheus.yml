@@ -27,10 +27,10 @@ scrape_configs:
 #  static_configs:
 #  - targets: ['grafana:3000']
 
-#- job_name: traefik
-#  honor_labels: true
-#  static_configs:
-#  - targets: ['traefik:80']
+- job_name: traefik
+  honor_labels: true
+  static_configs:
+  - targets: ['traefik:80']
 
 #- job_name: cadvisor
 #  honor_labels: true
