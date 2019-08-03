@@ -103,6 +103,8 @@ services:
       - "--config.file"
       - "/config/prometheus.yml"
       - "--storage.tsdb.retention.time=0s"
+      - "--web.enable-admin-api"
+      - "--web.enable-lifecycle"
     networks: 
       - cortex
     depends_on:
@@ -119,6 +121,8 @@ services:
       - graf-data:/var/lib/grafana
     environment:
       - "GF_SECURITY_ADMIN_PASSWORD=admin"
+      - "GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-clock-panel"
+
     networks: 
       - cortex
 
@@ -130,6 +134,7 @@ services:
       - "80:80"     # The HTTP port
       - "8080:8080" # The Web UI (enabled by --api)
       - "9009:9009"
+      - "7007:7007"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - traefik-data:/tmp

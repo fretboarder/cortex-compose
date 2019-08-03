@@ -9,6 +9,9 @@ defaultEntryPoint = "cortex"
 [entryPoints]
   [entryPoints.cortex]
     address = ":9009"
+  [entryPoints.prom]
+    address = ":7007"
+  
 
 [file]
   [frontends]
@@ -36,6 +39,6 @@ defaultEntryPoint = "cortex"
 
 [metrics]
   [metrics.prometheus]
-    entryPoint = "traefik"
+    entryPoint = "prom"
     buckets = [0.1,0.3,1.2,5.0]
 
